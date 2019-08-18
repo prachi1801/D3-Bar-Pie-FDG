@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="index.css">
+        <title>Forest Fires Data</title>
+    </head>
+
+    <h1> Forest Fires Data </h1>
+
+    <body>
+
+
+
+        <select id="filter" >
+          <option value="Wind Speed">Wind Speed
+          <option value="Relative Humidity">Relative Humidity
+          <option value="Temperature">Temperature
+          <option value="Month">Month
+          <option value="Day">Day
+          <option value="DMC">DMC Index
+          <option value="DC">DC Index
+          <option value="FFMC">FFMC Index
+          <option value="ISI">ISI Index
+          <option value="Burned Area">Burned Area
+        </select>
+
+        <div class="outer">
+
+          <svg width="800" height="500"/>
+
+
+          <div class="block">
+            <label id="l1">3</label>
+
+            <input type="range" min="3" max="15" value="10" class="slider" id="binslider">
+
+            <label id="l2">15</label>
+
+        </div>
+
+        </div>
+
+
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="index.js"></script>
+    </body>
+</html>

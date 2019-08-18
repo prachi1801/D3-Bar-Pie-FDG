@@ -1,0 +1,228 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="index.css">
+        <title>Forest Fires Data</title>
+
+        <style>
+          .links line {
+            stroke: #999;
+            stroke-opacity: 0.6;
+          }
+
+          .outer {
+            margin-left: 250px;
+            position: absolute;
+            margin-top: 40px;
+          }
+
+          p1
+          {
+            margin-left: 250px;
+          }
+      </style>
+
+      <script src="https://d3js.org/d3.v4.min.js"></script>
+    </head>
+
+    <h1> Forest Fires Data </h1>
+
+
+  <body>
+
+    <div class="outer">
+
+      <p1> Force Directed Graph with wind speed (km/hr) ranges as nodes </p1>
+
+      <svg width="800" height="500"/>
+
+
+    </div>
+
+
+          <script>
+
+          var csv;
+          d3.csv("fires.csv", function(error, datafile) {
+            if (error) console.log(error);
+
+            csv = datafile
+            createFdg()
+
+          })
+
+          function createFdg()
+          {
+            var data = binData("wind", 10, true)
+            var nodes = new Array(data.length);
+            var values = new Array(data.length);
+            for(var i = 0; i < data.length; i++)
+            {
+              obj = {}
+              obj["label"] = data[i].key;
+              nodes[i] = obj
+              values[i] = data[i].value;
+            }
+
+            var n = 2 * data.length;
+            var edges = new Array(n);
+            var j = 0;
+            while(j < n)
+            {
+              var i1 = Math.floor(Math.random() * data.length)
+
+              var n1 = nodes[i1];
+              var i2;
+              do {
+                i2 = Math.floor(Math.random() * data.length)
+
+              } while (i1 == i2);
+              var n2 = nodes[i2];
+
+              obj = {}
+              obj["source"] = n1;
+              obj["target"] = n2;
+              obj["strength"] = Math.sqrt(Math.sqrt((values[i1] + values[i2])))
+              edges[j] = obj;
+              j++;
+            }
+
+            renderFdg(nodes, edges)
+          }
+
+
+          function renderFdg(nodes, edges)
+          {
+            // reference : https://bl.ocks.org/heybignick/3faf257bbbbc7743bb72310d03b86ee8
+            var svg = d3.select("svg"),
+              wid = +svg.attr("width"),
+              ht = +svg.attr("height");
+
+            var simulation = d3.forceSimulation()
+          .force("link", d3.forceLink().id(function(d) { return d.id; }))
+          .force("charge", d3.forceManyBody())
+          .force("center", d3.forceCenter(wid / 2, ht / 2));
+
+          var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+            var link = svg.append("g")
+            .attr("class", "links")
+          .selectAll("line")
+          .data(edges)
+          .enter().append("line")
+            .attr("stroke-width", function(d) {
+              return Math.sqrt(d.strength); });
+
+              var node = svg.append("g")
+              .attr("class", "nodes")
+            .selectAll("g")
+            .data(nodes)
+            .enter().append("g")
+
+        var circles = node.append("circle")
+            .attr("r", 5)
+            .attr("fill", function(d, i) { return color(i); })
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        var lables = node.append("text")
+            .text(function(d) {
+              return d.label;
+            })
+            .attr('x', 6)
+            .attr('y', 3);
+
+        simulation
+            .nodes(nodes)
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(edges);
+
+            function ticked() {
+              link
+                  .attr("x1", function(d) { return d.source.x; })
+                  .attr("y1", function(d) { return d.source.y; })
+                  .attr("x2", function(d) { return d.target.x; })
+                  .attr("y2", function(d) { return d.target.y; });
+
+              node
+                  .attr("transform", function(d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                  })
+            }
+
+            function dragstarted(d) {
+              if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
+            }
+
+        function dragged(d) {
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+          if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+      }
+
+
+
+      function binData(variable, binCount, isRange)
+      {
+        var values = new Array(csv.length);
+
+        for( var i = 0; i < csv.length; i++)
+        {
+          values[i] = +csv[i][variable]
+
+        }
+
+        var arr = new Array(binCount)
+        var keys = new Array(binCount);
+        var binSize =  (d3.max(values) + 1 - d3.min(values)) / binCount
+
+        for(var i = 0; i < binCount; i++)
+        {
+          arr[i] = 0;
+        }
+
+        for(var i = 0; i < values.length; i++)
+        {
+
+          arr[Math.floor((values[i] - d3.min(values))/binSize)]++
+        }
+
+        var data = new Array(binCount)
+
+        for(var i = 0; i < binCount; i++)
+        {
+          var obj = {}
+          if(!isRange)
+          {
+            obj["key"]  = "" + (i+1)
+          }
+          else {
+            var st = i * binSize
+            keys[i] = parseFloat(st.toFixed(2)) + "-" + parseFloat((st+binSize).toFixed(2));
+            obj["key"]  = keys[i]
+          }
+
+          obj["value"] = arr[i]
+          data[i] = obj
+        }
+
+
+        return data
+      }
+
+        </script>
+    </body>
+</html>
